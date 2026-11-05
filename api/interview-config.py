@@ -7,7 +7,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-class Handler(BaseHTTPRequestHandler):
+class handler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         config = json.loads(
             (BASE_DIR / "interview_config.json").read_text(encoding="utf-8")
@@ -27,6 +27,3 @@ class Handler(BaseHTTPRequestHandler):
 
     def log_message(self, format_string: str, *args: object) -> None:
         return
-
-
-handler = Handler

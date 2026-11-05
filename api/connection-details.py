@@ -10,7 +10,7 @@ from urllib.parse import urlparse
 from livekit import api
 
 
-class Handler(BaseHTTPRequestHandler):
+class handler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:
         origin = self.headers.get("Origin")
         request_host = self.headers.get("Host")
@@ -77,6 +77,3 @@ class Handler(BaseHTTPRequestHandler):
 
     def log_message(self, format_string: str, *args: object) -> None:
         return
-
-
-handler = Handler
