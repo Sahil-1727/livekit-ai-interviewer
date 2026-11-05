@@ -71,7 +71,11 @@ async function connect() {
   startButton.innerHTML = "<span>Connecting…</span>";
   setStatus("Connecting to your interviewer");
   try {
-    const detailsResponse = await fetch("/api/connection-details");
+    const detailsResponse = await fetch("/api/connection-details", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}",
+    });
     if (!detailsResponse.ok) {
       const error = await detailsResponse.json().catch(() => ({}));
       throw new Error(error.detail || "Could not create a LiveKit session.");

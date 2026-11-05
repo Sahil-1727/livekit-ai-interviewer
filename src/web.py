@@ -11,11 +11,20 @@ from dotenv import load_dotenv
 from livekit import api
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-WEB_DIR = BASE_DIR / "web"
+WEB_DIR = BASE_DIR / "public"
 load_dotenv(BASE_DIR / ".env.local")
 
 
 class InterviewUIHandler(BaseHTTPRequestHandler):
+    def do_POST(self) -> None:
+        if urlparse(self.path).path != "/api/connection-details":
+            self.send_error(404)
+            return
+        try:
+            self.send_json(self.connection_details())
+        except (ValueError, KeyError) as error:
+            self.send_json({"detail": str(error)}, status=500)
+
     def do_GET(self) -> None:
         path = urlparse(self.path).path
         if path == "/api/connection-details":
@@ -33,7 +42,11 @@ class InterviewUIHandler(BaseHTTPRequestHandler):
                     "experience_level": config.get("experience_level"),
                 }
             )
-        elif path == "/" or path in {"/app.js", "/styles.css"}:
+        elif path == "/" or path in {
+            "/app.js",
+            "/styles.css",
+            "/interview_config.json",
+        }:
             file_path = WEB_DIR / ("index.html" if path == "/" else path[1:])
             content_type = {
                 ".html": "text/html; charset=utf-8",

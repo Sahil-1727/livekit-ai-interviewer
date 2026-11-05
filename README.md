@@ -127,6 +127,24 @@ lk agent dev --log-level DEBUG
 
 Open [http://localhost:8000](http://localhost:8000) and choose **Begin interview**. The local server issues the browser's LiveKit access token; the API secret stays in `.env.local`. The agent dispatch is embedded in the room token. If your worker logs show a non-production deployment such as `dev-...`, set `LIVEKIT_AGENT_DEPLOYMENT` to that deployment in `.env.local` before starting the UI server.
 
+## Deploy the interview UI to Vercel
+
+The web files in `public/` deploy as static assets. `api/connection-details.py` runs as a Vercel Python Function and issues a 10-minute LiveKit token; it never sends the API secret to the browser. Its function region is set to Mumbai (`bom1`).
+
+1. Deploy the agent to LiveKit Cloud first, using the India deployment region:
+
+   ```console
+   lk cloud auth
+   lk project set-default firstaiagent
+   lk agent create --region ap-south
+   ```
+
+2. Import this Git repository into Vercel, or link the project with the Vercel CLI from the repository root.
+3. In Vercel **Project Settings → Environment Variables**, add `LIVEKIT_URL`, `LIVEKIT_API_KEY`, and `LIVEKIT_API_SECRET` for Production. Use the values from your LiveKit project. Leave `LIVEKIT_AGENT_DEPLOYMENT` unset so the token dispatches to the production deployment.
+4. Deploy to Production. Vercel serves the UI and the token endpoint from the same origin.
+
+Do not add `.env.local` to Vercel or commit it. The token endpoint currently allows anyone who can open the site to start an interview; add user authentication and rate limiting before sharing a public URL broadly.
+
 ## Frontends and telephony
 
 Pair the agent with a prebuilt frontend starter, or add telephony:
