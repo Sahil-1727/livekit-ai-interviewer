@@ -1,72 +1,90 @@
-"""Issue a short-lived LiveKit token and dispatch the production interviewer."""
+"""Accept a job description and resume PDF, then return a LiveKit token."""
 
-import datetime
 import json
-import os
-import secrets
+import logging
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlparse
 
-from livekit import api
+from src.interview_sessions import (
+    MAX_REQUEST_BYTES,
+    AccessDeniedError,
+    consume_interview_quota,
+    create_interview_connection,
+    parse_interview_inputs,
+    validate_access_code,
+)
+
+logger = logging.getLogger("interview-api")
 
 
-class handler(BaseHTTPRequestHandler):
+class handler(BaseHTTPRequestHandler):  # noqa: N801 - Vercel entrypoint name
     def do_POST(self) -> None:
+        if not self._same_origin():
+            self.send_json(403, {"detail": "Requests must come from this site."})
+            return
+
+        try:
+            content_length = int(self.headers.get("Content-Length", "0"))
+        except ValueError:
+            self.send_json(400, {"detail": "Invalid request size."})
+            return
+        if content_length <= 0:
+            self.send_json(
+                400, {"detail": "Enter the job description and upload a resume PDF."}
+            )
+            return
+        if content_length > MAX_REQUEST_BYTES:
+            self.send_json(413, {"detail": "The resume PDF must be smaller than 4 MB."})
+            return
+
+        try:
+            body = self.rfile.read(content_length)
+            job_description, resume = parse_interview_inputs(
+                self.headers.get("Content-Type", ""), body
+            )
+            fingerprint = validate_access_code(
+                self.headers.get("X-Interview-Access-Code")
+            )
+            consume_interview_quota(fingerprint)
+            connection = create_interview_connection(job_description, resume)
+        except AccessDeniedError as error:
+            self.send_json(
+                429 if "limit" in str(error).lower() else 401, {"detail": str(error)}
+            )
+            return
+        except RuntimeError:
+            logger.exception("Interview access control is not available")
+            self.send_json(
+                503,
+                {
+                    "detail": "Demo access is temporarily unavailable. Please try again later."
+                },
+            )
+            return
+        except ValueError as error:
+            self.send_json(400, {"detail": str(error)})
+            return
+        except Exception:
+            logger.exception("Could not create interview session")
+            self.send_json(
+                502,
+                {"detail": "Could not start the interview. Please try again shortly."},
+            )
+            return
+
+        self.send_json(200, connection)
+
+    def _same_origin(self) -> bool:
         origin = self.headers.get("Origin")
         request_host = self.headers.get("Host")
-        if (
-            not origin
-            or not request_host
-            or urlparse(origin).netloc != request_host
-            or urlparse(origin).scheme not in {"http", "https"}
-        ):
-            self.send_json(403, {"detail": "Requests must come from this site"})
-            return
-
-        livekit_url = os.getenv("LIVEKIT_URL")
-        api_key = os.getenv("LIVEKIT_API_KEY")
-        api_secret = os.getenv("LIVEKIT_API_SECRET")
-        if not all((livekit_url, api_key, api_secret)):
-            self.send_json(500, {"detail": "LiveKit credentials are not configured"})
-            return
-
-        room_name = f"interview-{secrets.token_urlsafe(12)}"
-        identity = f"candidate-{secrets.token_urlsafe(8)}"
-        dispatch = api.RoomAgentDispatch(agent_name="livekit-ai-interviewer")
-        deployment = os.getenv("LIVEKIT_AGENT_DEPLOYMENT")
-        if deployment:
-            dispatch.deployment = deployment
-
-        token = (
-            api.AccessToken(api_key, api_secret)
-            .with_identity(identity)
-            .with_name("Candidate")
-            .with_ttl(datetime.timedelta(minutes=10))
-            .with_grants(
-                api.VideoGrants(
-                    room_join=True,
-                    room=room_name,
-                    can_publish=True,
-                    can_subscribe=True,
-                )
-            )
-            .with_room_config(api.RoomConfiguration(agents=[dispatch]))
-        )
-        self.send_json(
-            200,
-            {
-                "serverUrl": livekit_url,
-                "participantToken": token.to_jwt(),
-                "roomName": room_name,
-                "participantName": "Candidate",
-            },
+        return bool(
+            origin
+            and request_host
+            and urlparse(origin).netloc == request_host
+            and urlparse(origin).scheme in {"http", "https"}
         )
 
-    def do_OPTIONS(self) -> None:
-        self.send_response(204)
-        self.end_headers()
-
-    def send_json(self, status: int, data: dict[str, str]) -> None:
+    def send_json(self, status: int, data: dict[str, object]) -> None:
         body = json.dumps(data).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")

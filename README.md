@@ -125,11 +125,23 @@ In another terminal, start the agent worker:
 lk agent dev --log-level DEBUG
 ```
 
-Open [http://localhost:8000](http://localhost:8000) and choose **Begin interview**. The local server issues the browser's LiveKit access token; the API secret stays in `.env.local`. The agent dispatch is embedded in the room token. If your worker logs show a non-production deployment such as `dev-...`, set `LIVEKIT_AGENT_DEPLOYMENT` to that deployment in `.env.local` before starting the UI server.
+Open [http://localhost:8000](http://localhost:8000), paste the job description into the text box, upload a text-based resume PDF under 3.9 MB, then choose **Begin 10-question interview**. The local server extracts the resume text, dispatches the agent with the job description and resume as private session context, and issues the browser's short-lived LiveKit access token; the API secret and document text stay off the browser. If your worker logs show a non-production deployment such as `dev-...`, set `LIVEKIT_AGENT_DEPLOYMENT` to that deployment in `.env.local` before starting the UI server.
 
 ## Deploy the interview UI to Vercel
 
-The web files in `public/` deploy as static assets. `api/connection-details.py` runs as a Vercel Python Function and issues a 10-minute LiveKit token; it never sends the API secret to the browser. Its function region is set to Mumbai (`bom1`).
+The web files in `public/` deploy as static assets. `api/connection-details.py` runs as a Vercel Python Function, accepts the job description text and resume PDF, privately dispatches the LiveKit agent with their text, and issues a 10-minute participant token. The API secret and document text are not sent to the browser. Its function region is set to Mumbai (`bom1`). The interviewer asks ten questions total, counting follow-ups, then gives a scorecard. If the candidate ends early, the agent announces that the scorecard is ready, then opens the separate results page with a partial scorecard.
+
+### Restrict demo access and control usage
+
+The interview endpoint requires a shared invite code and consumes quota before creating a LiveKit room. Add these Vercel environment variables for Production and Preview:
+
+- `INTERVIEW_ACCESS_CODE`: a long, randomly generated code shared only with approved testers.
+- `INTERVIEW_ACCESS_REQUEST_EMAIL`: email address shown in the **Request demo access** link.
+- `INTERVIEW_DAILY_LIMIT_PER_CODE`: daily maximum per invite code (default `3`).
+- `INTERVIEW_DAILY_LIMIT_GLOBAL`: daily maximum for the whole demo (default `10`).
+- `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`: credentials for an Upstash Redis database, used for atomic daily counters across Vercel function instances.
+
+If the code or quota store is not configured, the endpoint fails closed and does not start an interview. The current implementation uses one shared invite code; issue a new code by changing `INTERVIEW_ACCESS_CODE` and redeploying. For separate tester codes, expirations, or revoking one person without affecting others, add an authentication service and store hashed, per-user invitations. The local UI also uses these settings from `.env.local`.
 
 1. Deploy the agent to LiveKit Cloud first, using the India deployment region:
 
@@ -143,7 +155,7 @@ The web files in `public/` deploy as static assets. `api/connection-details.py` 
 3. In Vercel **Project Settings → Environment Variables**, add `LIVEKIT_URL`, `LIVEKIT_API_KEY`, and `LIVEKIT_API_SECRET` for Production. Use the values from your LiveKit project. Leave `LIVEKIT_AGENT_DEPLOYMENT` unset so the token dispatches to the production deployment.
 4. Deploy to Production. Vercel serves the UI and the token endpoint from the same origin.
 
-Do not add `.env.local` to Vercel or commit it. The token endpoint currently allows anyone who can open the site to start an interview; add user authentication and rate limiting before sharing a public URL broadly.
+Do not add `.env.local` to Vercel or commit it. Never share LiveKit credentials or the Upstash token with testers.
 
 ## Frontends and telephony
 

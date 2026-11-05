@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f5f3ed" />
+    <title>Interview Scorecard · Fieldnote</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell scorecard-shell">
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="Fieldnote home">
+          <span class="brand-mark"><span></span><span></span><span></span></span>
+          <span>fieldnote<span class="brand-dot">.</span></span>
+        </a>
+        <div class="top-meta"><span>INTERVIEW RESULTS</span><span class="meta-divider">/</span><span>PRIVATE</span></div>
+        <span class="result-mark" aria-hidden="true">✳</span>
+      </header>
+
+      <section class="scorecard-content" aria-labelledby="scorecard-title">
+        <div class="eyebrow"><span>02</span><span class="eyebrow-rule"></span><span>YOUR SCORECARD</span></div>
+        <h1 id="scorecard-title">A record of<br /><em>your thinking.</em></h1>
+        <p class="scorecard-intro" id="scorecard-summary">Your interview feedback, based on the answers and role details provided.</p>
+
+        <div class="scorecard-overview">
+          <div class="overall-score">
+            <span class="card-label">OVERALL</span>
+            <strong id="scorecard-overall">—</strong>
+            <span>out of 5</span>
+          </div>
+          <div class="rating-panel">
+            <span class="card-label">SKILL AREAS</span>
+            <dl class="scorecard-ratings" id="scorecard-ratings"></dl>
+          </div>
+        </div>
+
+        <div class="scorecard-details">
+          <section class="scorecard-detail">
+            <span class="card-label">WHAT WENT WELL</span>
+            <ul id="scorecard-strengths"></ul>
+          </section>
+          <section class="scorecard-detail">
+            <span class="card-label">A PLACE TO GROW</span>
+            <p id="scorecard-improvement"></p>
+          </section>
+        </div>
+
+        <p class="scorecard-disclaimer">This feedback reflects the interview conversation and the job description you provided.</p>
+        <a class="start-button scorecard-home" href="/">
+          <span>Return to interview setup</span><span class="button-icon">↗</span>
+        </a>
+      </section>
+
+      <footer class="footer"><span>TAKE A BREATH. THERE’S NO RUSH.</span><span>FIELDNOTE <b>✳</b></span></footer>
+    </main>
+    <script type="module" src="/scorecard.js"></script>
+  </body>
+</html>
