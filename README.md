@@ -1,206 +1,153 @@
-<a href="https://livekit.io/">
-  <img src="./.github/assets/livekit-mark.png" alt="LiveKit logo" width="100" height="100">
-</a>
+# Fieldnote AI Interviewer
 
-# LiveKit Agents starter for Python
+Fieldnote is a voice-based technical interview demo. It creates a personalized interview from a job description and a candidate's PDF resume, then presents an interview scorecard.
 
-A starter project for building voice AI apps with [LiveKit Agents for Python](https://github.com/livekit/agents) and [LiveKit Cloud](https://cloud.livekit.io/).
+## Live demo
 
-The starter includes:
+**Website:** [https://livekit-ai-interviewer.vercel.app/](https://livekit-ai-interviewer.vercel.app/)
 
-- A simple [voice AI assistant](https://docs.livekit.io/agents/start/voice-ai/) to extend and customize.
-- A voice pipeline built on [LiveKit Inference](https://docs.livekit.io/agents/models/inference/), which gives you access to [models](https://docs.livekit.io/agents/models/) from top labs with no extra configuration:
-  - The default LLM is Gemma 4 31B, an open-weight model [hosted by LiveKit](https://docs.livekit.io/agents/models/llm/livekit/) and tuned for voice AI.
-  - The default TTS is [Fish Audio S2.1 Pro](https://docs.livekit.io/agents/models/tts/fishaudio/), an expressive and cost-effective voice.
-  - More than 50 other models are available from OpenAI, Cartesia, Deepgram, and other providers.
-  - [Realtime models](https://docs.livekit.io/agents/models/realtime/) such as OpenAI GPT-Live. Many other models are available through the [plugin ecosystem](https://docs.livekit.io/agents/models/#plugins).
-- [Expressive mode](https://docs.livekit.io/agents/models/tts/expressive/), on by default, so your agent's voice carries emotion and pacing that fit the conversation.
-- [Keyterms](https://docs.livekit.io/agents/models/stt/keyterms/), on by default, so speech recognition gets your names, brands, and jargon right, including names it picks up during the conversation, like a caller's.
-- [LiveKit Turn Detector](https://docs.livekit.io/agents/logic/turns/turn-detector/), which knows when the user has finished speaking, in 14 languages.
-- [Adaptive interruption handling](https://docs.livekit.io/agents/logic/turns/adaptive-interruption-handling/), which tells a real interruption from an "uh-huh" or background noise, so your agent doesn't stop talking when it shouldn't.
-- [Background voice cancellation](https://docs.livekit.io/transport/media/noise-cancellation/).
-- Session transcripts, traces, and recordings from LiveKit [Agent Observability](https://docs.livekit.io/testing/observability/).
-- [Simulations](https://docs.livekit.io/testing/simulations/) that test full conversations with your agent, run in CI on every merge to `main`.
-- A `Dockerfile` for [deploying to LiveKit Cloud](https://docs.livekit.io/deploy/agents/).
+The demo is invite-only. Use the access code supplied by the site owner, enter a job description, upload a text-based PDF resume, and start the interview. The **Request demo access** link opens a prefilled email request.
 
-The starter works with any [custom web or mobile frontend](https://docs.livekit.io/frontends/) or with [telephony](https://docs.livekit.io/telephony/).
+## What it does
 
-## Using coding agents
+- Runs a real-time voice interview tailored to the job description and resume.
+- Asks ten questions total, counting follow-up questions.
+- Supports ending early and generating a partial scorecard from the interview so far.
+- Shows the scorecard on a separate results page. When a candidate ends early, the agent only announces that the scorecard is ready; it does not speak the scores.
+- Requires an invite code and applies daily interview limits to control AI usage.
+- Extracts resume text on the server. The LiveKit API secret and interview documents are not sent to the browser.
 
-This project works with coding agents like [Claude Code](https://claude.com/product/claude-code), [Cursor](https://www.cursor.com/), and [Codex](https://openai.com/codex/).
+## How the app is structured
 
-LiveKit offers both a CLI and an [MCP server](https://docs.livekit.io/reference/developer-tools/docs-mcp/) for browsing and searching its documentation. Search returns short excerpts, so fetch the full page to read the details:
+| Path | Purpose |
+| --- | --- |
+| `public/` | Interview setup page, browser-side LiveKit connection, styling, and scorecard page. |
+| `api/connection-details.py` | Vercel endpoint that validates access, checks quotas, extracts submitted inputs, dispatches the LiveKit agent, and returns a short-lived room token. |
+| `api/access-config.py` | Public endpoint that supplies the configured access-request email to the UI. |
+| `src/agent.py` | LiveKit voice interviewer and scorecard generation. |
+| `src/interview_sessions.py` | Resume/JD validation, PDF text extraction, invite-code checks, quota accounting, and LiveKit dispatch. |
+| `src/web.py` | Local development web server for the same UI and API flow. |
 
-```console
-lk docs search "testing my agent"
-lk docs get-page /testing/unit-tests
+The UI is hosted on Vercel. The voice agent runs separately on LiveKit Cloud. A Git push can deploy the Vercel app; changes to the Python voice agent must also be deployed to LiveKit Cloud.
+
+## Local development
+
+### Requirements
+
+- Python 3.12
+- [`uv`](https://docs.astral.sh/uv/)
+- [LiveKit CLI](https://docs.livekit.io/reference/developer-tools/livekit-cli/)
+- A LiveKit Cloud project
+- An Upstash Redis database with REST API access
+
+### Configure environment variables
+
+Copy `.env.example` to `.env.local` and fill in the values. Keep `.env.local` private; it is ignored by Git.
+
+Required LiveKit values:
+
+```dotenv
+LIVEKIT_URL=
+LIVEKIT_API_KEY=
+LIVEKIT_API_SECRET=
 ```
 
-The project also includes an [`AGENTS.md`](AGENTS.md) file, so your coding agent follows LiveKit's best practices for workflows, handoffs, and testing, and tries its changes with the [agent debugger](https://docs.livekit.io/testing/debugger/).
+Access and quota values:
 
-For more guidance at each stage of the work, from building and debugging to testing and deploying, install LiveKit's [agent skills](https://docs.livekit.io/intro/coding-agents/#agent-skills). The CLI installs them for the coding agents on your machine and adds the Docs MCP server to their config. `lk agent init` offers to do this when it creates your project, or you can run it yourself:
-
-```console
-lk skills install
+```dotenv
+INTERVIEW_ACCESS_CODE=
+INTERVIEW_ACCESS_REQUEST_EMAIL=
+INTERVIEW_DAILY_LIMIT_PER_CODE=3
+INTERVIEW_DAILY_LIMIT_GLOBAL=10
+UPSTASH_REDIS_REST_URL=
+UPSTASH_REDIS_REST_TOKEN=
 ```
 
-Run `lk skills update` to get the latest skills, and commit `skills-lock.json` along with them. See the [coding agents guide](https://docs.livekit.io/intro/coding-agents/) for more details.
+`UPSTASH_REDIS_REST_URL` must be the HTTPS REST endpoint from Upstash, not a `rediss://` connection string. The endpoint fails closed if the access code or quota storage is missing or unavailable.
 
-## Dev setup
+### Start the app
 
-Install the [LiveKit CLI](https://docs.livekit.io/intro/basics/cli/), version 2.18.8 or later:
+Open two terminals in the project directory.
 
-- **macOS:** `brew install livekit-cli`
-- **Linux:** `curl -sSL https://get.livekit.io/cli | bash`
-- **Windows:** `winget install LiveKit.LiveKitCLI`
-
-Check your version with `lk --version`. To update an existing install, see [Update the CLI](https://docs.livekit.io/reference/developer-tools/livekit-cli/#updates).
-
-Then create a project from this template. The CLI clones the template and configures your environment:
+**Terminal 1 — local UI:**
 
 ```console
-lk cloud auth
-lk agent init my-agent --template agent-starter-python
-```
-
-<details>
-<summary>Set up the project manually</summary>
-
-Clone the repository and install dependencies into a virtual environment with [uv](https://docs.astral.sh/uv/):
-
-```console
-git clone https://github.com/livekit-examples/agent-starter-python.git
-cd agent-starter-python
 uv sync
-```
-
-Sign up for [LiveKit Cloud](https://cloud.livekit.io/), then copy `.env.example` to `.env.local` and fill it in. To have the CLI write your project's URL and API keys into the file instead, run:
-
-```console
-lk cloud auth
-lk app env --write --destination .env.local
-```
-
-</details>
-
-## Run the agent
-
-The `lk agent console`, `lk agent dev`, and `lk agent debugger` commands run your agent on your own machine. To talk to it in your terminal:
-
-```console
-lk agent console
-```
-
-To connect it to LiveKit Cloud so a frontend, a phone call, or the [Agent Console](https://docs.livekit.io/testing/agent-console/) can reach it:
-
-```console
-lk agent dev
-```
-
-To let a coding agent or a script test it one text turn at a time, use the [agent debugger](https://docs.livekit.io/testing/debugger/). Each turn prints the agent's reply along with the tool calls and handoffs behind it:
-
-```console
-lk agent debugger start
-lk agent debugger say "Hi, what can you do?"
-lk agent debugger stop
-```
-
-In production, run the agent directly:
-
-```console
-uv run src/agent.py start
-```
-
-## Run the local interview UI
-
-Start the local UI server:
-
-```console
 uv run src/web.py
 ```
 
-In another terminal, start the agent worker:
+**Terminal 2 — LiveKit agent worker:**
 
 ```console
 lk agent dev --log-level DEBUG
 ```
 
-Open [http://localhost:8000](http://localhost:8000), paste the job description into the text box, upload a text-based resume PDF under 3.9 MB, then choose **Begin 10-question interview**. The local server extracts the resume text, dispatches the agent with the job description and resume as private session context, and issues the browser's short-lived LiveKit access token; the API secret and document text stay off the browser. If your worker logs show a non-production deployment such as `dev-...`, set `LIVEKIT_AGENT_DEPLOYMENT` to that deployment in `.env.local` before starting the UI server.
+The agent command prints a development deployment ID such as `dev-...`. For local interviews, set `LIVEKIT_AGENT_DEPLOYMENT` in `.env.local` to that exact ID, restart the UI server, and keep the worker running. A new development worker may get a different deployment ID.
 
-## Deploy the interview UI to Vercel
+Open [http://localhost:8000](http://localhost:8000), enter the invite code, paste a job description, attach a text-based PDF resume under 3.9 MB, and choose **Begin 10-question interview**. Keep both terminals open during the interview.
 
-The web files in `public/` deploy as static assets. `api/connection-details.py` runs as a Vercel Python Function, accepts the job description text and resume PDF, privately dispatches the LiveKit agent with their text, and issues a 10-minute participant token. The API secret and document text are not sent to the browser. Its function region is set to Mumbai (`bom1`). The interviewer asks ten questions total, counting follow-ups, then gives a scorecard. If the candidate ends early, the agent announces that the scorecard is ready, then opens the separate results page with a partial scorecard.
+## Access codes and usage limits
 
-### Restrict demo access and control usage
+The current setup uses one shared invite code configured by `INTERVIEW_ACCESS_CODE`. Share it only with approved testers. Changing this environment variable requires a redeploy before the new code takes effect. The per-code quota applies to everyone who shares that code; the global quota limits all interviews for the day.
 
-The interview endpoint requires a shared invite code and consumes quota before creating a LiveKit room. Add these Vercel environment variables for Production and Preview:
+The request email comes from `INTERVIEW_ACCESS_REQUEST_EMAIL`. For Gmail addresses, the UI opens a prefilled Gmail compose page; other addresses use the tester's configured email app.
 
-- `INTERVIEW_ACCESS_CODE`: a long, randomly generated code shared only with approved testers.
-- `INTERVIEW_ACCESS_REQUEST_EMAIL`: email address shown in the **Request demo access** link.
-- `INTERVIEW_DAILY_LIMIT_PER_CODE`: daily maximum per invite code (default `3`).
-- `INTERVIEW_DAILY_LIMIT_GLOBAL`: daily maximum for the whole demo (default `10`).
-- `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`: credentials for an Upstash Redis database, used for atomic daily counters across Vercel function instances.
+Default limits are three interviews per code per day and ten total interviews per day. Override them using `INTERVIEW_DAILY_LIMIT_PER_CODE` and `INTERVIEW_DAILY_LIMIT_GLOBAL`. Counts are stored in Upstash Redis and reset daily.
 
-If the code or quota store is not configured, the endpoint fails closed and does not start an interview. The current implementation uses one shared invite code; issue a new code by changing `INTERVIEW_ACCESS_CODE` and redeploying. For separate tester codes, expirations, or revoking one person without affecting others, add an authentication service and store hashed, per-user invitations. The local UI also uses these settings from `.env.local`.
+## Production deployment
 
-1. Deploy the agent to LiveKit Cloud first, using the India deployment region:
+### Vercel web app
 
-   ```console
-   lk cloud auth
-   lk project set-default firstaiagent
-   lk agent create --region ap-south
-   ```
+The Vercel project is connected to this GitHub repository. Pushing to `main` triggers a Vercel production deployment.
 
-2. Import this Git repository into Vercel, or link the project with the Vercel CLI from the repository root.
-3. In Vercel **Project Settings → Environment Variables**, add `LIVEKIT_URL`, `LIVEKIT_API_KEY`, and `LIVEKIT_API_SECRET` for Production. Use the values from your LiveKit project. Leave `LIVEKIT_AGENT_DEPLOYMENT` unset so the token dispatches to the production deployment.
-4. Deploy to Production. Vercel serves the UI and the token endpoint from the same origin.
+In **Vercel → Project Settings → Environment Variables**, configure these for Production (and Preview if you use Preview deployments):
 
-Do not add `.env.local` to Vercel or commit it. Never share LiveKit credentials or the Upstash token with testers.
+| Variable | Description |
+| --- | --- |
+| `LIVEKIT_URL` | LiveKit Cloud project URL. |
+| `LIVEKIT_API_KEY` | LiveKit API key. |
+| `LIVEKIT_API_SECRET` | LiveKit API secret. |
+| `INTERVIEW_ACCESS_CODE` | Shared tester invite code. |
+| `INTERVIEW_ACCESS_REQUEST_EMAIL` | Email address for access requests. |
+| `INTERVIEW_DAILY_LIMIT_PER_CODE` | Daily interview cap for the shared code. |
+| `INTERVIEW_DAILY_LIMIT_GLOBAL` | Total daily interview cap. |
+| `UPSTASH_REDIS_REST_URL` | Upstash HTTPS REST endpoint. |
+| `UPSTASH_REDIS_REST_TOKEN` | Upstash REST token. |
 
-## Frontends and telephony
+Leave `LIVEKIT_AGENT_DEPLOYMENT` **unset** in Vercel so interview sessions use the LiveKit production agent. Do not upload `.env.local` or commit credentials.
 
-Pair the agent with a prebuilt frontend starter, or add telephony:
+### LiveKit voice agent
 
-| Platform | Link | Description |
-|----------|----------|-------------|
-| **Web** | [`livekit-examples/agent-starter-react`](https://github.com/livekit-examples/agent-starter-react) | Web voice AI assistant with React & Next.js |
-| **iOS/macOS** | [`livekit-examples/agent-starter-swift`](https://github.com/livekit-examples/agent-starter-swift) | Native iOS, macOS, and visionOS voice AI assistant |
-| **Flutter** | [`livekit-examples/agent-starter-flutter`](https://github.com/livekit-examples/agent-starter-flutter) | Cross-platform voice AI assistant app |
-| **React Native** | [`livekit-examples/voice-assistant-react-native`](https://github.com/livekit-examples/voice-assistant-react-native) | Native mobile app with React Native & Expo |
-| **Android** | [`livekit-examples/agent-starter-android`](https://github.com/livekit-examples/agent-starter-android) | Native Android app with Kotlin & Jetpack Compose |
-| **Web Embed** | [`livekit-examples/agent-starter-embed`](https://github.com/livekit-examples/agent-starter-embed) | Voice AI widget for any website |
-| **Telephony** | [Documentation](https://docs.livekit.io/telephony/) | Add inbound or outbound calling to your agent |
-
-For more options, see the [frontend guide](https://docs.livekit.io/frontends/).
-
-## Testing and debugging
-
-Simulations run full multi-turn conversations between a simulated user and your agent on LiveKit Cloud, then judge each transcript. The scenarios live in [`scenarios.yaml`](scenarios.yaml). Run them locally with the CLI:
+Deploy or update the production agent from the project root:
 
 ```console
-lk agent simulate text --scenarios scenarios.yaml
+lk cloud auth
+lk project set-default firstaiagent
+lk agent deploy
 ```
 
-The `Simulations` workflow in [`.github/workflows/simulations.yml`](.github/workflows/simulations.yml) runs the same file on every merge to `main`, and on demand from the Actions tab. It doesn't run on every pull request push because each run uses real inference. See the [simulations guide](https://docs.livekit.io/testing/simulations/) for how to write scenarios and read results.
+`lk agent deploy` targets the production deployment by default. Verify it with:
 
-To check a change turn by turn without a live session, use the [agent debugger](https://docs.livekit.io/testing/debugger/) shown in [Run the agent](#run-the-agent).
+```console
+lk agent status
+```
 
-To debug a running agent, open it in the [Agent Console](https://docs.livekit.io/testing/agent-console/). It shows events, tool calls, and model timing as you talk to the agent. To stream logs from a deployed agent, run `lk agent logs`.
+Vercel deployment and LiveKit agent deployment are separate. After changing `src/agent.py`, deploy the LiveKit agent as well as pushing the repository if the UI or API also changed.
 
-## Using this template for your own project
+## Troubleshooting
 
-After you create your own project from this template:
+- **Access denied:** Check that the entered code matches `INTERVIEW_ACCESS_CODE` in the environment used by the site. On Vercel, redeploy after changing environment variables.
+- **Demo access unavailable:** Confirm the Upstash HTTPS REST URL and token are configured in Vercel or `.env.local`.
+- **Connected but no interviewer:** Confirm the LiveKit production agent is running with `lk agent status`. For local development, keep `lk agent dev --log-level DEBUG` running and ensure the local UI's `LIVEKIT_AGENT_DEPLOYMENT` matches the worker's current deployment ID.
+- **No scorecard after ending early:** Check the LiveKit agent logs with `lk agent logs`. Changes to `src/agent.py` take effect in production only after `lk agent deploy` completes.
+- **Port 8000 is already in use:** Stop the other local UI process with `Ctrl+C` or choose another available port by setting `UI_PORT` in `.env.local`.
 
-- **Commit `uv.lock`.** The template doesn't track it, but your project should, for reproducible builds. If you deploy to LiveKit Cloud, commit `livekit.toml` too.
-- **Add repository secrets.** Add `LIVEKIT_URL`, `LIVEKIT_API_KEY`, and `LIVEKIT_API_SECRET` as [repository secrets](https://docs.github.com/en/actions/how-tos/writing-workflows/choosing-what-your-workflow-does/using-secrets-in-github-actions) so the simulations can run in CI.
+## Security notes
 
-## Deploying to production
-
-To deploy the agent to LiveKit Cloud or another environment with the included `Dockerfile`, see the [deployment guide](https://docs.livekit.io/deploy/agents/).
-
-## Self-hosted LiveKit
-
-You can self-host LiveKit instead of using LiveKit Cloud. See the [self-hosting guide](https://docs.livekit.io/transport/self-hosting/local/). If you self-host, use [model plugins](https://docs.livekit.io/agents/models/#plugins) instead of LiveKit Inference, and remove the [LiveKit Cloud noise cancellation](https://docs.livekit.io/transport/media/noise-cancellation/) plugin.
+- Never commit `.env.local`, LiveKit secrets, or the Upstash token.
+- Rotate a token immediately if it is exposed.
+- Treat the invite code as a shared demo password; a short code is easy to guess.
+- The scorecard is kept in the candidate's browser tab for display and is not a persistent results database.
 
 ## License
 
