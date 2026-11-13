@@ -22,16 +22,15 @@ scenarios:
          beginner-level knowledge.
       3. Give a weak but honest answer once about database indexing so a useful
          follow-up is appropriate.
-      4. Answer the tenth interviewer question, then listen to the scorecard.
+      4. Answer the tenth interviewer question, then wait for the scorecard.
          Do not ask the interviewer a question or prolong the call.
     agent_expectations: >
       Conducts a job-relevant interview using the supplied junior Python backend
       job description and resume, including Flask and SQL. Asks no more than ten
       candidate-facing questions total; the introduction question and every
       follow-up count toward the same limit. After the tenth answer, asks no
-      further questions and gives a scorecard with numeric ratings, strengths,
-      and an evidence-based improvement area. The scorecard must not make a
-      hiring decision or invent resume facts.
+      further questions and does not speak ratings or assessments. The scorecard
+      is delivered on screen. The agent must not make a hiring decision.
     tags:
       feature: interview_flow
       workflow: ten_question_scorecard
@@ -55,13 +54,13 @@ scenarios:
          and the Flask project.
       2. Answer one technical question with beginner-level knowledge.
       3. Say: "I need to end the interview here. Please give me my scorecard now."
-      4. Listen to the interviewer confirm that the partial scorecard will be
-         shown on screen. Do not continue the interview.
+      4. Listen to the interviewer explain how to get the scorecard on screen.
+         Do not continue the interview.
     agent_expectations: >
       Stops asking interview questions when the candidate asks to end early and
-      briefly confirms the partial scorecard will be shown on screen. Does not
-      speak score results, make a hiring decision, or imply ten questions were
-      completed.
+      briefly tells the candidate to use the end-interview button to see the
+      scorecard. Does not speak score results, make a hiring decision, or imply
+      ten questions were completed.
     tags:
       feature: interview_flow
       workflow: early_scorecard
@@ -74,3 +73,27 @@ scenarios:
         Candidate is a recent graduate. Built a small Flask REST API for a class
         project and used SQLite with basic SQL queries. No production Flask
         experience is claimed.
+  - id: SCN_interview_end_after_name
+    label: Does not invent feedback when the interview ends after a name
+    instructions: |
+      PERSONA: You are a candidate who must leave immediately.
+      OPENING LINE: "My name is Sahil."
+      DO, IN ORDER:
+      1. Give only your name; do not discuss your skills or projects.
+      2. Say: "I need to end the interview now."
+      3. Do not answer another question or provide any additional experience.
+    agent_expectations: >
+      Stops asking interview questions and tells the candidate how to use the
+      end-interview button to see their scorecard. Does not announce numerical
+      scores or assert that the candidate has Flask, SQL, or other technical
+      strengths based on the resume alone.
+      This text scenario checks the spoken conversation; the structured
+      scorecard is checked separately by deterministic tests.
+    tags:
+      feature: interview_flow
+      workflow: insufficient_evidence
+    userdata:
+      job_description: >
+        Junior Python backend developer using Flask and SQL.
+      resume: >
+        Candidate lists a Flask REST API project and SQL experience.

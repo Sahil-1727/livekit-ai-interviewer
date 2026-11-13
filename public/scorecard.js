@@ -34,36 +34,68 @@ function renderScorecard(scorecard) {
   document.querySelector("#scorecard-summary").textContent = scorecard.is_partial
     ? "You ended the interview early. This scorecard reflects the answers available so far."
     : "Your interview feedback, based on the answers and role details provided.";
-  document.querySelector("#scorecard-overall").textContent = scorecard.overall.toFixed(1);
+  const overall = document.querySelector("#scorecard-overall");
+  overall.textContent = scorecard.overall === null ? "Not assessed" : scorecard.overall.toFixed(1);
+  overall.classList.toggle("not-assessed", scorecard.overall === null);
+  document.querySelector("#scorecard-overall-note").textContent = scorecard.overall === null
+    ? "Not enough evidence to rate every area."
+    : "out of 5";
 
   const ratings = document.querySelector("#scorecard-ratings");
   for (const [key, label] of categories) {
     const term = document.createElement("dt");
     term.textContent = label;
     const value = document.createElement("dd");
-    value.textContent = `${scorecard.ratings[key]} / 5`;
+    value.textContent = scorecard.ratings[key] === null ? "Not assessed" : `${scorecard.ratings[key]} / 5`;
+    const evidence = scorecard.rating_evidence?.[key];
+    if (typeof evidence === "string" && evidence) {
+      const quote = document.createElement("small");
+      quote.className = "scorecard-evidence";
+      quote.textContent = `“${evidence}”`;
+      value.append(quote);
+    }
     ratings.append(term, value);
   }
 
   const strengths = document.querySelector("#scorecard-strengths");
-  for (const strength of scorecard.strengths) {
+  if (!scorecard.strengths.length) {
     const item = document.createElement("li");
-    item.textContent = strength;
+    item.textContent = "Not enough interview evidence to identify strengths.";
     strengths.append(item);
   }
-  document.querySelector("#scorecard-improvement").textContent = scorecard.improvement;
+  for (const [index, strength] of scorecard.strengths.entries()) {
+    const item = document.createElement("li");
+    item.textContent = strength;
+    const evidence = scorecard.strength_evidence?.[index];
+    if (typeof evidence === "string" && evidence) {
+      const quote = document.createElement("small");
+      quote.className = "scorecard-evidence";
+      quote.textContent = `“${evidence}”`;
+      item.append(quote);
+    }
+    strengths.append(item);
+  }
+  const improvement = document.querySelector("#scorecard-improvement");
+  improvement.textContent = scorecard.improvement || "Answer more interview questions to receive a specific improvement suggestion.";
+  if (typeof scorecard.improvement_evidence === "string" && scorecard.improvement_evidence) {
+    const quote = document.createElement("small");
+    quote.className = "scorecard-evidence";
+    quote.textContent = `“${scorecard.improvement_evidence}”`;
+    improvement.append(quote);
+  }
 }
 
 try {
   const rawScorecard = sessionStorage.getItem("interviewScorecard");
   const scorecard = rawScorecard ? JSON.parse(rawScorecard) : null;
   const ratingKeys = ["technical_accuracy", "problem_solving", "communication", "role_relevance"];
-  const validRatings = ratingKeys.every((key) => Number.isInteger(scorecard?.ratings?.[key])
-    && scorecard.ratings[key] >= 1 && scorecard.ratings[key] <= 5);
-  if (!validRatings || typeof scorecard.overall !== "number"
-    || !Array.isArray(scorecard.strengths) || scorecard.strengths.length !== 2
+  const validRatings = ratingKeys.every((key) => scorecard?.ratings?.[key] === null
+    || (Number.isInteger(scorecard?.ratings?.[key]) && scorecard.ratings[key] >= 1 && scorecard.ratings[key] <= 5));
+  if (!validRatings || (scorecard.overall !== null && (typeof scorecard.overall !== "number" || !Number.isFinite(scorecard.overall)))
+    || !Array.isArray(scorecard.strengths) || scorecard.strengths.length > 2
     || scorecard.strengths.some((item) => typeof item !== "string")
-    || typeof scorecard.improvement !== "string" || typeof scorecard.is_partial !== "boolean") {
+    || (scorecard.improvement !== null && typeof scorecard.improvement !== "string")
+    || typeof scorecard.is_partial !== "boolean") {
     showMissingScorecard();
   } else {
     renderScorecard(scorecard);

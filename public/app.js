@@ -130,10 +130,13 @@ function validScorecard(scorecard) {
     ["role_relevance", "Role relevance"],
   ];
   if (!scorecard?.ratings || categories.some(([key]) =>
-    !Number.isInteger(scorecard.ratings[key]) || scorecard.ratings[key] < 1 || scorecard.ratings[key] > 5,
-  ) || typeof scorecard.overall !== "number" || !Array.isArray(scorecard.strengths)
-    || scorecard.strengths.length !== 2 || scorecard.strengths.some((item) => typeof item !== "string")
-    || typeof scorecard.improvement !== "string" || typeof scorecard.is_partial !== "boolean") return false;
+    scorecard.ratings[key] !== null && (!Number.isInteger(scorecard.ratings[key])
+      || scorecard.ratings[key] < 1 || scorecard.ratings[key] > 5),
+  ) || (scorecard.overall !== null && (typeof scorecard.overall !== "number" || !Number.isFinite(scorecard.overall)))
+    || !Array.isArray(scorecard.strengths) || scorecard.strengths.length > 2
+    || scorecard.strengths.some((item) => typeof item !== "string")
+    || (scorecard.improvement !== null && typeof scorecard.improvement !== "string")
+    || typeof scorecard.is_partial !== "boolean") return false;
   return true;
 }
 
