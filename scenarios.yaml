@@ -22,15 +22,16 @@ scenarios:
          beginner-level knowledge.
       3. Give a weak but honest answer once about database indexing so a useful
          follow-up is appropriate.
-      4. Answer the tenth interviewer question, then wait for the scorecard.
+      4. Answer the tenth interviewer question, then wait for the conversation to end.
          Do not ask the interviewer a question or prolong the call.
     agent_expectations: >
       Conducts a job-relevant interview using the supplied junior Python backend
       job description and resume, including Flask and SQL. Asks no more than ten
       candidate-facing questions total; the introduction question and every
       follow-up count toward the same limit. After the tenth answer, asks no
-      further questions and does not speak ratings or assessments. The scorecard
-      is delivered on screen. The agent must not make a hiring decision.
+      further questions and does not speak ratings or assessments. The agent
+      must not make a hiring decision. Judge only the spoken conversation: this
+      text simulation cannot see the browser or verify scorecard delivery.
     tags:
       feature: interview_flow
       workflow: ten_question_scorecard
