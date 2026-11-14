@@ -13,6 +13,8 @@ function element() {
   return {
     textContent: "",
     children: [],
+    listeners: {},
+    addEventListener(name, callback) { this.listeners[name] = callback; },
     classList: { toggle: (name, enabled) => enabled ? classes.add(name) : classes.delete(name) },
     append(...children) { this.children.push(...children); },
     replaceChildren(...children) { this.children = children; },
@@ -42,6 +44,25 @@ function validator() {
   assert.ok(start >= 0 && end > start, "scorecard validation is available");
   return vm.runInNewContext(`${appSource.slice(start, end)}\nvalidScorecard`);
 }
+
+test("text export preserves missing ratings and includes available answer evidence", () => {
+  const start = scorecardSource.indexOf("function scorecardToText(");
+  const end = scorecardSource.indexOf("function enableScorecardDownload", start);
+  const exportText = vm.runInNewContext(`${scorecardSource.slice(start, end)}\nscorecardToText`);
+  const text = exportText({
+    is_partial: true,
+    overall: null,
+    ratings: { technical_accuracy: 3, problem_solving: null, communication: null, role_relevance: null },
+    rating_evidence: { technical_accuracy: "I check invalid inputs before storing data." },
+    strengths: [], improvement: null,
+  });
+  assert.match(text, /Partial interview/);
+  assert.match(text, /Overall: Not assessed/);
+  assert.match(text, /Technical accuracy: 3 \/ 5/);
+  assert.match(text, /Problem solving: Not assessed/);
+  assert.match(text, /Evidence: I check invalid inputs before storing data\./);
+  assert.doesNotMatch(text, /null|undefined/);
+});
 
 test("an introduction-only scorecard is accepted and shown as not assessed", () => {
   const card = {

@@ -4,65 +4,86 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f5f3ed" />
-    <title>AI Interviewer</title>
+    <title>Fieldnote · Practice your next interview</title>
+    <meta name="description" content="Practice a focused voice interview tailored to your job description and resume, then review feedback grounded in your answers." />
     <link rel="stylesheet" href="/styles.css" />
   </head>
-  <body>
+  <body class="interview-page">
     <main class="shell">
       <header class="topbar">
-        <a class="brand" href="#" aria-label="Fieldnote home">
+        <a class="brand" href="/" aria-label="Fieldnote home">
           <span class="brand-mark"><span></span><span></span><span></span></span>
           <span>fieldnote<span class="brand-dot">.</span></span>
         </a>
-        <div class="top-meta"><span class="live-dot"></span><span>PRIVATE SESSION</span><span class="meta-divider">/</span><span id="clock">LOCAL TIME</span></div>
-        <button class="help-button" id="help-button" aria-label="About this interview">i</button>
+        <div class="top-meta"><span class="live-dot"></span><span>YOUR PRACTICE SPACE</span><span class="meta-divider">/</span><span id="clock">LOCAL TIME</span></div>
+        <button class="help-button" id="help-button" aria-label="About this interview">How it works <span aria-hidden="true">↗</span></button>
       </header>
 
       <section class="workspace">
         <div class="intro">
-          <div class="eyebrow"><span>01</span><span class="eyebrow-rule"></span><span>VOICE INTERVIEW</span></div>
-          <h1>Make room<br />for your <em>thinking.</em></h1>
-          <p class="intro-copy">A thoughtful, ten-question conversation tailored to the job and your experience.</p>
-          <div class="role-card">
-            <div class="role-icon">✳</div>
-            <div><span class="card-label">BEFORE WE BEGIN</span><strong>Add your role details</strong><span class="role-subtitle">Paste the JD + upload your resume</span></div>
-            <span class="card-arrow">↗</span>
+          <div class="eyebrow"><span class="intro-tag">PRACTISE WITH INTENTION</span></div>
+          <h1>Your experience.<br />Your next role.<br /><em>Your space to grow.</em></h1>
+          <p class="intro-copy">Turn interview nerves into a conversation. Practise explaining your work, explore the role, and leave with feedback you can use.</p>
+          <div class="session-facts" aria-label="Interview overview"><span><strong>10</strong> questions, with follow-ups</span><span><strong>1:1</strong> voice conversation</span></div>
+          <div class="practice-note">
+            <span class="card-label">A MOMENT TO THINK</span><span class="practice-symbol" aria-hidden="true">✳</span>
+            <p>Good answers start<br />with a little <em>breathing room.</em></p>
+            <span class="practice-note-footer">Your interviewer asks. You set the pace.</span>
           </div>
-          <div class="note"><span class="note-icon">◷</span><span>10 questions total, including follow-ups</span></div>
+          <ol class="journey" aria-label="How your interview works">
+            <li><span>01</span><div><strong>Make it yours</strong><p>Add the role and your resume.</p></div></li>
+            <li><span>02</span><div><strong>Think out loud</strong><p>One question at a time. Take a moment to think.</p></div></li>
+            <li><span>03</span><div><strong>Leave with direction</strong><p>Review your answers and areas to practise.</p></div></li>
+          </ol>
         </div>
 
         <div class="interview-card">
-          <div class="card-topline"><span class="section-label">YOUR INTERVIEW</span><span class="secure"><span>⌑</span> ENCRYPTED ROOM</span></div>
+          <div class="card-topline"><span class="section-label" id="stage-label">01 / PREPARE</span><span class="secure"><span>⌑</span> VOICE SESSION</span></div>
           <div class="document-upload" id="document-upload">
-            <h2 class="upload-title">Prepare your interview</h2>
-            <p class="upload-note">Have your access code, job description, and resume ready. Allow microphone access when prompted.</p>
+            <h2 class="upload-title">Let’s make it yours.</h2>
+            <p class="setup-description">A little context makes a better conversation.</p>
+            <div class="setup-progress" aria-label="Interview preparation">
+              <span id="setup-progress-text">0 of 3 details ready</span>
+              <progress id="setup-progress" max="3" value="0" aria-label="Preparation complete"></progress>
+            </div>
             <label class="upload-field" for="access-code">
-              <span>Demo access code</span>
+              <span class="field-heading"><span class="field-number">01</span> Your invitation</span>
               <input id="access-code" type="password" autocomplete="one-time-code" placeholder="Enter the code from your invite" required />
             </label>
             <label class="upload-field jd-field" for="job-description-text">
-              <span>Job description</span>
+              <span class="field-heading"><span class="field-number">02</span> The role you’re preparing for</span>
               <textarea id="job-description-text" minlength="40" maxlength="12000" aria-describedby="jd-character-count upload-note" placeholder="Paste the job description here…" required></textarea>
               <span class="character-count" id="jd-character-count">0 / 12,000</span>
             </label>
+            <div class="draft-controls">
+              <label><input type="checkbox" id="remember-jd" /> Save this JD on this device</label>
+              <button type="button" id="forget-jd" class="text-button">Forget draft</button>
+              <p id="draft-status" class="upload-note" role="status">Optional. Your resume and access code are not saved.</p>
+            </div>
             <label class="upload-field" for="resume-file">
-              <span>Resume</span>
+              <span class="field-heading"><span class="field-number">03</span> Your experience <span class="field-hint">PDF · under 3.9 MB</span></span>
               <input id="resume-file" type="file" accept="application/pdf,.pdf" aria-describedby="upload-note" required />
             </label>
             <p class="upload-note" id="upload-note" aria-live="polite">Paste at least 40 characters and attach a PDF under 3.9 MB.</p>
+            <div class="device-check">
+              <div><strong>Check your microphone</strong><p id="microphone-check-status" role="status">Confirm browser access before you begin. No interview is started by this check.</p></div>
+              <button class="secondary-button" id="microphone-check" type="button">Check access</button>
+            </div>
             <p class="access-note">This demo uses AI services that consume usage credits. Access is limited to invited testers to keep the demo available.</p>
             <a class="request-access-link" id="request-access-link" href="#" hidden>Request demo access ↗</a>
           </div>
-          <div class="visualizer" id="visualizer" aria-label="Microphone visualization">
+          <p class="connection-error" id="connection-error" role="alert" hidden></p>
+          <div class="visualizer" id="visualizer" aria-label="Interview activity indicator">
             <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
             <div class="sound-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
             <div class="mic-halo"><div class="mic-core"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"></rect><path d="M6.5 11.5a5.5 5.5 0 0 0 11 0M12 17v4m-3 0h6"></path></svg></div></div>
             <span class="visualizer-caption" id="visualizer-caption">YOUR VOICE, WHEN YOU’RE READY</span>
           </div>
           <div class="status-row"><span class="status-light" id="status-light"></span><span id="status-text" role="status">Ready when you are</span><span class="status-time" id="elapsed" aria-label="Elapsed time">00:00</span></div>
-          <div class="transcript" id="transcript" aria-live="polite"><span class="transcript-placeholder">Your conversation will appear here.</span></div>
+          <button class="audio-recovery" id="audio-recovery" hidden>Can’t hear your interviewer? Enable audio</button>
+          <details class="conversation-notes" open><summary>Conversation transcript <span>Live notes</span></summary><div class="transcript" id="transcript" aria-live="polite"><span class="transcript-placeholder">Your conversation will appear here.</span></div></details>
           <div class="controls">
-            <button class="secondary-button" id="mute-button" disabled><span class="small-mic">◉</span><span>Mute mic</span></button>
+            <button class="secondary-button" id="mute-button" aria-pressed="false" disabled><span class="small-mic">◉</span><span>Mute mic</span></button>
             <button class="start-button" id="start-button" disabled><span class="button-icon">↗</span><span>Add JD and resume</span></button>
           </div>
           <div class="card-footnote"><span>Your audio is processed to conduct the interview and generate feedback.</span><span class="footnote-mark">FIELDNOTE / 01</span></div>
@@ -72,6 +93,15 @@
       <footer class="footer"><span>TAKE A BREATH. THERE’S NO RUSH.</span><span>BUILT FOR BETTER CONVERSATIONS <b>✳</b></span></footer>
     </main>
     <div class="toast" id="toast" role="status"></div>
+    <dialog id="help-dialog" class="help-dialog" aria-labelledby="help-title">
+      <form method="dialog"><button class="dialog-close" aria-label="Close interview guide">×</button></form>
+      <span class="card-label">A LITTLE PREPARATION</span>
+      <h2 id="help-title">Your space to practise.</h2>
+      <p>Use headphones if possible and choose a quiet spot. Your interviewer will welcome you first, then ask one question at a time.</p>
+      <p>Follow-ups count toward the ten-question limit. You can mute your microphone or end early using “End &amp; get scorecard”. Feedback reflects the answers available so far.</p>
+      <p>Your scorecard stays in this browser tab. Save or print it before closing the tab.</p>
+      <form method="dialog"><button class="secondary-button">Got it</button></form>
+    </dialog>
     <script type="module" src="/app.js"></script>
   </body>
 </html>

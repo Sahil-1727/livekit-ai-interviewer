@@ -1,4 +1,46 @@
 const scorecardContent = document.querySelector(".scorecard-content");
+document.querySelector("#save-scorecard")?.addEventListener("click", () => window.print());
+
+function scorecardToText(card) {
+  const categories = {
+    technical_accuracy: "Technical accuracy",
+    problem_solving: "Problem solving",
+    communication: "Communication",
+    role_relevance: "Role relevance",
+  };
+  const lines = ["FIELDNOTE — INTERVIEW FEEDBACK", card.is_partial ? "Partial interview" : "Completed interview", "",
+    `Overall: ${card.overall === null ? "Not assessed" : `${card.overall} / 5`}`, ""];
+  for (const [key, label] of Object.entries(categories)) {
+    lines.push(`${label}: ${card.ratings[key] === null ? "Not assessed" : `${card.ratings[key]} / 5`}`);
+    if (card.rating_evidence?.[key]) lines.push(`Evidence: ${card.rating_evidence[key]}`);
+    lines.push("");
+  }
+  lines.push("EVIDENCE FROM YOUR ANSWERS", ...(card.strengths.length ? card.strengths : ["Not enough evidence to identify strengths."]), "",
+    "A PLACE TO GROW", card.improvement || "Answer more interview questions to receive a specific improvement suggestion.");
+  if (card.improvement_evidence) lines.push(`Evidence: ${card.improvement_evidence}`);
+  lines.push("", "Ratings reflect interview answers. AI-generated feedback can be imperfect.");
+  return lines.join("\n");
+}
+
+function enableScorecardDownload(card) {
+  document.querySelector("#download-scorecard")?.addEventListener("click", () => {
+    let url;
+    try {
+      url = URL.createObjectURL(new Blob([scorecardToText(card)], { type: "text/plain;charset=utf-8" }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "fieldnote-interview-feedback.txt";
+      document.body.append(link);
+      link.click();
+      link.remove();
+      document.querySelector("#export-status").textContent = "Download requested. Check your browser’s downloads.";
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch {
+      if (url) URL.revokeObjectURL(url);
+      document.querySelector("#export-status").textContent = "Download unavailable. Use Save or print scorecard instead.";
+    }
+  });
+}
 
 function showMissingScorecard() {
   scorecardContent.replaceChildren();
@@ -99,6 +141,7 @@ try {
     showMissingScorecard();
   } else {
     renderScorecard(scorecard);
+    enableScorecardDownload(scorecard);
   }
 } catch {
   showMissingScorecard();
