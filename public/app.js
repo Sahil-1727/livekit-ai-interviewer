@@ -20,6 +20,7 @@ const audioRecovery = document.querySelector("#audio-recovery");
 let interviewerHasSpoken = false;
 let connecting = false;
 let pendingScorecard = null;
+let conversationLog = [];
 const connectionError = document.querySelector("#connection-error");
 const microphoneCheck = document.querySelector("#microphone-check");
 const microphoneCheckStatus = document.querySelector("#microphone-check-status");
@@ -169,6 +170,8 @@ function setStatus(message, { active = false, speaking = false } = {}) {
 }
 
 function appendTranscript(text, speaker = "Interviewer") {
+  if (typeof text !== "string" || !text.trim()) return;
+  conversationLog.push({ speaker, text });
   const placeholder = transcript.querySelector(".transcript-placeholder");
   placeholder?.remove();
   const line = document.createElement("p");
@@ -210,7 +213,7 @@ async function openScorecardPage(scorecard) {
   }
 
   try {
-    sessionStorage.setItem("interviewScorecard", JSON.stringify(scorecard));
+    sessionStorage.setItem("interviewScorecard", JSON.stringify({ ...scorecard, transcript: conversationLog }));
   } catch {
     pendingScorecard = scorecard;
     startButton.disabled = false;
@@ -272,6 +275,7 @@ async function connect() {
   const inputs = selectedInputs();
   if (!inputs) return;
   connecting = true;
+  conversationLog = [];
   pendingScorecard = null;
   connectionError.hidden = true;
   endingInterview = false;

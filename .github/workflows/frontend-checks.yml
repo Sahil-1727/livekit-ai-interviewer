@@ -1,0 +1,32 @@
+name: Frontend checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Check JavaScript syntax
+        run: |
+          node --check public/app.js
+          node --check public/scorecard.js
+      - name: Check interview setup, recovery, and scorecards
+        run: node --test tests/test_interview_setup.cjs tests/test_interview_recovery.cjs tests/test_scorecard_ui.cjs

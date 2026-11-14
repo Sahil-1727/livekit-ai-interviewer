@@ -851,6 +851,18 @@ body:not(.session-active) .controls { grid-template-columns: 1fr; }
 .draft-controls p { flex-basis: 100%; }
 .text-button { padding: 8px 0; border: 0; background: transparent; color: var(--copper-dark); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; font: 12px var(--sans); }
 #download-scorecard { margin: 8px 0; }
+.reflection-panel { margin-top: 28px; padding: 26px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.reflection-panel h2 { font: 32px var(--serif); margin: 12px 0 20px; }
+.reflection-panel label { display: block; font: 600 13px var(--sans); margin-bottom: 10px; }
+.reflection-panel textarea { width: 100%; min-height: 140px; padding: 14px; resize: vertical; border: 1px solid var(--input-line); border-radius: 7px; font: 14px/1.7 var(--sans); color: var(--ink); background: var(--paper); margin-bottom: 8px; }
+.conversation-review { margin: 24px 0; border: 1px solid var(--line); border-radius: 10px; padding: 20px; }
+.conversation-review summary { cursor: pointer; font: 600 14px var(--sans); }
+.conversation-review summary span { float: right; color: var(--muted); font-weight: 400; }
+.conversation-review > p { margin-top: 16px; }
+#conversation-review-content { max-height: 400px; overflow-y: auto; font: 14px/1.8 var(--sans); overflow-wrap: anywhere; }
+#conversation-review-content strong { color: var(--copper-dark); }
+@media (max-width: 760px) { .reflection-panel textarea { font-size: 16px; } }
+@media print { .reflection-panel, .conversation-review { display: none; } }
 @media print {
   #download-scorecard, #export-status, .scorecard-content > .upload-note { display: none; }
 }

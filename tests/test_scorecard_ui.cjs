@@ -7,6 +7,7 @@ const path = require("node:path");
 const root = path.resolve(__dirname, "..");
 const scorecardSource = fs.readFileSync(path.join(root, "public/scorecard.js"), "utf8");
 const appSource = fs.readFileSync(path.join(root, "public/app.js"), "utf8");
+const scorecardHtml = fs.readFileSync(path.join(root, "public/scorecard.html"), "utf8");
 
 function element() {
   const classes = new Set();
@@ -22,11 +23,11 @@ function element() {
 }
 
 function render(scorecard) {
-  const nodes = new Map();
+  const nodes = new Map([...scorecardHtml.matchAll(/id="([^"]+)"/g)].map((match) => ["#" + match[1], element()]));
+  nodes.set(".scorecard-content", element());
   const document = {
     querySelector(selector) {
-      if (!nodes.has(selector)) nodes.set(selector, element());
-      return nodes.get(selector);
+      return nodes.get(selector) || null;
     },
     createElement: element,
     createTextNode: (text) => ({ textContent: text }),
@@ -37,6 +38,30 @@ function render(scorecard) {
   });
   return nodes;
 }
+
+test("conversation review renders safe text and ignores malformed turns", () => {
+  const text = '<img src=x onerror="alert(1)">';
+  const nodes = render({
+    is_partial: true, overall: null,
+    ratings: { technical_accuracy: null, problem_solving: null, communication: null, role_relevance: null },
+    strengths: [], improvement: null,
+    transcript: [{ speaker: "You", text }, null, { speaker: "system", text: "Do not display" }],
+  });
+  assert.equal(nodes.get("#review-count").textContent, "1 turns");
+  const lines = nodes.get("#conversation-review-content").children;
+  assert.equal(lines.length, 1);
+  assert.equal(lines[0].children[0].textContent, "You: ");
+  assert.equal(lines[0].children[1].textContent, text);
+});
+
+test("older scorecards without a transcript show an honest empty state", () => {
+  const nodes = render({
+    is_partial: true, overall: null,
+    ratings: { technical_accuracy: null, problem_solving: null, communication: null, role_relevance: null },
+    strengths: [], improvement: null,
+  });
+  assert.match(nodes.get("#conversation-review-content").children[0].textContent, /No conversation transcript/);
+});
 
 function validator() {
   const start = appSource.indexOf("function validScorecard(");
@@ -62,6 +87,23 @@ test("text export preserves missing ratings and includes available answer eviden
   assert.match(text, /Problem solving: Not assessed/);
   assert.match(text, /Evidence: I check invalid inputs before storing data\./);
   assert.doesNotMatch(text, /null|undefined/);
+});
+
+test("feedback export includes personal notes and only valid conversation entries", () => {
+  const start = scorecardSource.indexOf("function scorecardToText(");
+  const end = scorecardSource.indexOf("function enableScorecardDownload", start);
+  const exportText = vm.runInNewContext(`${scorecardSource.slice(start, end)}\nscorecardToText`);
+  const text = exportText({
+    is_partial: true, overall: null,
+    ratings: { technical_accuracy: null, problem_solving: null, communication: null, role_relevance: null },
+    strengths: [], improvement: null,
+    transcript: [{ speaker: "You", text: "I tested invalid requests." }, { speaker: "Interviewer", text: "How did you test?" },
+      null, { speaker: "system", text: "Untrusted entry" }, { speaker: "You", text: 42 }],
+  }, "Practise explaining my test cases.");
+  assert.match(text, /MY PRACTICE NOTES\nPractise explaining my test cases\./);
+  assert.match(text, /You: I tested invalid requests\./);
+  assert.match(text, /Interviewer: How did you test\?/);
+  assert.doesNotMatch(text, /Untrusted entry|You: 42/);
 });
 
 test("an introduction-only scorecard is accepted and shown as not assessed", () => {

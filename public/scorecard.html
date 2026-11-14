@@ -46,6 +46,19 @@
           </section>
         </div>
 
+        <section class="reflection-panel" aria-labelledby="reflection-heading">
+          <span class="card-label">TURN FEEDBACK INTO PRACTICE</span>
+          <h2 id="reflection-heading">What will you try next?</h2>
+          <label for="practice-reflection">Your personal takeaways</label>
+          <textarea id="practice-reflection" maxlength="2000" placeholder="An answer I want to improve…&#10;An example I’ll prepare…&#10;One thing I’ll try next time…" aria-describedby="reflection-help"></textarea>
+          <p id="reflection-help" class="upload-note">Included in your text download. These notes are not saved after a reload.</p>
+        </section>
+        <details class="conversation-review">
+          <summary>Review your conversation <span id="review-count"></span></summary>
+          <p class="upload-note">Transcription may contain errors or omit speech. This is a record of the text received by your browser.</p>
+          <div id="conversation-review-content"></div>
+        </details>
+
         <p class="scorecard-disclaimer">Ratings use the interview answers. Areas without enough evidence are not assessed. AI-generated feedback can be imperfect.</p>
         <button class="secondary-button" id="save-scorecard">Save or print scorecard ↗</button>
         <button class="secondary-button" id="download-scorecard">Download feedback (.txt) ↓</button>

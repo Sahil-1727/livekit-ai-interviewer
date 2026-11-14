@@ -1,7 +1,7 @@
 const scorecardContent = document.querySelector(".scorecard-content");
 document.querySelector("#save-scorecard")?.addEventListener("click", () => window.print());
 
-function scorecardToText(card) {
+function scorecardToText(card, reflection = "") {
   const categories = {
     technical_accuracy: "Technical accuracy",
     problem_solving: "Problem solving",
@@ -18,15 +18,27 @@ function scorecardToText(card) {
   lines.push("EVIDENCE FROM YOUR ANSWERS", ...(card.strengths.length ? card.strengths : ["Not enough evidence to identify strengths."]), "",
     "A PLACE TO GROW", card.improvement || "Answer more interview questions to receive a specific improvement suggestion.");
   if (card.improvement_evidence) lines.push(`Evidence: ${card.improvement_evidence}`);
+  if (reflection.trim()) lines.push("", "MY PRACTICE NOTES", reflection.trim());
+  const conversation = validatedTranscript(card.transcript);
+  if (conversation.length) {
+    lines.push("", "CONVERSATION TRANSCRIPT", "Browser transcription may contain errors or omit speech.");
+    for (const turn of conversation) lines.push(`${turn.speaker}: ${turn.text}`);
+  }
   lines.push("", "Ratings reflect interview answers. AI-generated feedback can be imperfect.");
   return lines.join("\n");
+}
+
+function validatedTranscript(value) {
+  return Array.isArray(value) ? value.filter((turn) => turn && ["You", "Interviewer"].includes(turn.speaker)
+    && typeof turn.text === "string" && turn.text.trim()) : [];
 }
 
 function enableScorecardDownload(card) {
   document.querySelector("#download-scorecard")?.addEventListener("click", () => {
     let url;
     try {
-      url = URL.createObjectURL(new Blob([scorecardToText(card)], { type: "text/plain;charset=utf-8" }));
+      const reflection = document.querySelector("#practice-reflection")?.value || "";
+      url = URL.createObjectURL(new Blob([scorecardToText(card, reflection)], { type: "text/plain;charset=utf-8" }));
       const link = document.createElement("a");
       link.href = url;
       link.download = "fieldnote-interview-feedback.txt";
@@ -60,6 +72,21 @@ function showMissingScorecard() {
 }
 
 function renderScorecard(scorecard) {
+  const conversation = validatedTranscript(scorecard.transcript);
+  const review = document.querySelector("#conversation-review-content");
+  document.querySelector("#review-count").textContent = conversation.length ? `${conversation.length} turns` : "";
+  if (!conversation.length) {
+    const empty = document.createElement("p");
+    empty.textContent = "No conversation transcript was available for this session.";
+    review.append(empty);
+  }
+  for (const turn of conversation) {
+    const line = document.createElement("p");
+    const speaker = document.createElement("strong");
+    speaker.textContent = `${turn.speaker}: `;
+    line.append(speaker, document.createTextNode(turn.text));
+    review.append(line);
+  }
   const categories = [
     ["technical_accuracy", "Technical accuracy"],
     ["problem_solving", "Problem solving"],

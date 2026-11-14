@@ -94,6 +94,7 @@ test("blocked storage retains the ready scorecard and retry opens it without reg
   const context = {
     validScorecard: () => true,
     pendingScorecard: null,
+    conversationLog: [{ speaker: "You", text: "I built an API." }],
     startButton: { disabled: true },
     connectionError: {},
     setStatus() {},
