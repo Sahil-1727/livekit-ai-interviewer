@@ -34,21 +34,22 @@
         <div class="interview-card">
           <div class="card-topline"><span class="section-label">YOUR INTERVIEW</span><span class="secure"><span>⌑</span> ENCRYPTED ROOM</span></div>
           <div class="document-upload" id="document-upload">
-            <p class="upload-title">Prepare your interview</p>
+            <h2 class="upload-title">Prepare your interview</h2>
+            <p class="upload-note">Have your access code, job description, and resume ready. Allow microphone access when prompted.</p>
             <label class="upload-field" for="access-code">
               <span>Demo access code</span>
               <input id="access-code" type="password" autocomplete="one-time-code" placeholder="Enter the code from your invite" required />
             </label>
             <label class="upload-field jd-field" for="job-description-text">
               <span>Job description</span>
-              <textarea id="job-description-text" maxlength="12000" placeholder="Paste the job description here…" required></textarea>
+              <textarea id="job-description-text" minlength="40" maxlength="12000" aria-describedby="jd-character-count upload-note" placeholder="Paste the job description here…" required></textarea>
               <span class="character-count" id="jd-character-count">0 / 12,000</span>
             </label>
             <label class="upload-field" for="resume-file">
               <span>Resume</span>
-              <input id="resume-file" type="file" accept="application/pdf,.pdf" required />
+              <input id="resume-file" type="file" accept="application/pdf,.pdf" aria-describedby="upload-note" required />
             </label>
-            <p class="upload-note" id="upload-note">Paste the job description and attach your resume as a PDF.</p>
+            <p class="upload-note" id="upload-note" aria-live="polite">Paste at least 40 characters and attach a PDF under 3.9 MB.</p>
             <p class="access-note">This demo uses AI services that consume usage credits. Access is limited to invited testers to keep the demo available.</p>
             <a class="request-access-link" id="request-access-link" href="#" hidden>Request demo access ↗</a>
           </div>
@@ -58,13 +59,13 @@
             <div class="mic-halo"><div class="mic-core"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"></rect><path d="M6.5 11.5a5.5 5.5 0 0 0 11 0M12 17v4m-3 0h6"></path></svg></div></div>
             <span class="visualizer-caption" id="visualizer-caption">YOUR VOICE, WHEN YOU’RE READY</span>
           </div>
-          <div class="status-row"><span class="status-light" id="status-light"></span><span id="status-text">Ready when you are</span><span class="status-time" id="elapsed">00:00</span></div>
+          <div class="status-row"><span class="status-light" id="status-light"></span><span id="status-text" role="status">Ready when you are</span><span class="status-time" id="elapsed" aria-label="Elapsed time">00:00</span></div>
           <div class="transcript" id="transcript" aria-live="polite"><span class="transcript-placeholder">Your conversation will appear here.</span></div>
           <div class="controls">
             <button class="secondary-button" id="mute-button" disabled><span class="small-mic">◉</span><span>Mute mic</span></button>
             <button class="start-button" id="start-button" disabled><span class="button-icon">↗</span><span>Add JD and resume</span></button>
           </div>
-          <div class="card-footnote"><span>By continuing, your audio is used only to conduct this interview.</span><span class="footnote-mark">FIELDNOTE / 01</span></div>
+          <div class="card-footnote"><span>Your audio is processed to conduct the interview and generate feedback.</span><span class="footnote-mark">FIELDNOTE / 01</span></div>
         </div>
       </section>
 
