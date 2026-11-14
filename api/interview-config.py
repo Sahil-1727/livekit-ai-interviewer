@@ -7,7 +7,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-class handler(BaseHTTPRequestHandler):
+class handler(BaseHTTPRequestHandler):  # noqa: N801 - Vercel entrypoint name
     def do_GET(self) -> None:
         config = json.loads(
             (BASE_DIR / "interview_config.json").read_text(encoding="utf-8")
