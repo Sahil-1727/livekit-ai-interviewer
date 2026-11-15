@@ -66,3 +66,16 @@ test("denied microphone never requests a session and restores the prepared form"
   assert.equal(nodes.get("#connection-error").hidden, false);
   assert.match(nodes.get("#connection-error").textContent, /Microphone access was blocked/);
 });
+
+test("offline candidates keep their preparation without requesting an interview", async () => {
+  const { context, nodes, requests } = setup();
+  context.navigator.onLine = false;
+  nodes.get("#job-description-text").value = "A backend role building Python APIs and SQL databases.";
+  nodes.get("#access-code").value = "test-code";
+  nodes.get("#resume-file").files = [{ name: "resume.pdf", type: "application/pdf", size: 200 }];
+  context.updateUploadState();
+  await context.connect();
+  assert.equal(requests(), 0);
+  assert.equal(nodes.get("#start-button").disabled, false);
+  assert.match(nodes.get("#connection-error").textContent, /offline/);
+});

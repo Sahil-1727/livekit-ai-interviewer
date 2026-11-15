@@ -22,7 +22,7 @@ function element() {
   };
 }
 
-function render(scorecard) {
+function render(scorecard, options = {}) {
   const nodes = new Map([...scorecardHtml.matchAll(/id="([^"]+)"/g)].map((match) => ["#" + match[1], element()]));
   nodes.set(".scorecard-content", element());
   const document = {
@@ -34,7 +34,8 @@ function render(scorecard) {
   };
   vm.runInNewContext(scorecardSource, {
     document,
-    sessionStorage: { getItem: () => JSON.stringify(scorecard) },
+    sessionStorage: options.storage || { getItem: (key) => key === "interviewScorecard" ? JSON.stringify(scorecard) : null },
+    navigator: options.navigator || {},
   });
   return nodes;
 }
@@ -158,4 +159,35 @@ test("older fully scored cards still render during the rollout", () => {
 
   assert.equal(validator()(card), true);
   assert.equal(render(card).get("#scorecard-overall").textContent, "3.5");
+});
+
+const partialCard = {
+  is_partial: true, overall: null,
+  ratings: { technical_accuracy: null, problem_solving: null, communication: null, role_relevance: null },
+  strengths: [], improvement: null,
+};
+
+test("practice notes survive reload and blocked writes show a recovery message", () => {
+  const saved = new Map([["interviewScorecard", JSON.stringify(partialCard)]]);
+  const storage = { getItem: (key) => saved.get(key) || null, setItem: (key, value) => saved.set(key, value) };
+  let nodes = render(partialCard, { storage });
+  nodes.get("#practice-reflection").value = "Prepare a concrete example.";
+  nodes.get("#practice-reflection").listeners.input();
+  nodes = render(partialCard, { storage });
+  assert.equal(nodes.get("#practice-reflection").value, "Prepare a concrete example.");
+  storage.setItem = () => { throw new Error("Quota exceeded"); };
+  nodes.get("#practice-reflection").listeners.input();
+  assert.match(nodes.get("#reflection-help").textContent, /Download your feedback before leaving/);
+});
+
+test("copy includes current notes and handles blocked clipboard access", async () => {
+  let copied;
+  const nodes = render(partialCard, { navigator: { clipboard: { writeText: async (text) => { copied = text; } } } });
+  nodes.get("#practice-reflection").value = "Explain tradeoffs.";
+  await nodes.get("#copy-scorecard").listeners.click();
+  assert.match(copied, /Explain tradeoffs/);
+  assert.match(nodes.get("#export-status").textContent, /Feedback copied/);
+  const blocked = render(partialCard);
+  await blocked.get("#copy-scorecard").listeners.click();
+  assert.match(blocked.get("#export-status").textContent, /Clipboard unavailable/);
 });

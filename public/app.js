@@ -274,6 +274,11 @@ async function connect() {
   if (connecting || checkingMicrophone) return;
   const inputs = selectedInputs();
   if (!inputs) return;
+  if (navigator.onLine === false) {
+    connectionError.textContent = "You’re offline. Reconnect to the internet, then start your interview. Your details are still here.";
+    connectionError.hidden = false;
+    return;
+  }
   connecting = true;
   conversationLog = [];
   pendingScorecard = null;
@@ -281,7 +286,7 @@ async function connect() {
   endingInterview = false;
   interviewerHasSpoken = false;
   scorecardDelivered = false;
-  try { sessionStorage.removeItem("interviewScorecard"); } catch { /* Optional cleanup. */ }
+  try { sessionStorage.removeItem("interviewScorecard"); sessionStorage.removeItem("interviewPracticeNotes"); } catch { /* Optional cleanup. */ }
   transcript.innerHTML = '<span class="transcript-placeholder">Your scorecard and conversation will appear here.</span>';
   startButton.disabled = true;
   startButton.innerHTML = "<span>Preparing interview…</span>";

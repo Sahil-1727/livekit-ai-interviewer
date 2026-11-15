@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#f5f3ed" />
     <title>Interview Scorecard · Fieldnote</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;450;500;550;600;650;700&amp;family=DM+Mono:wght@400;500&amp;family=Instrument+Serif:ital@0;1&amp;display=swap" />
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
@@ -51,7 +54,7 @@
           <h2 id="reflection-heading">What will you try next?</h2>
           <label for="practice-reflection">Your personal takeaways</label>
           <textarea id="practice-reflection" maxlength="2000" placeholder="An answer I want to improve…&#10;An example I’ll prepare…&#10;One thing I’ll try next time…" aria-describedby="reflection-help"></textarea>
-          <p id="reflection-help" class="upload-note">Included in your text download. These notes are not saved after a reload.</p>
+          <p id="reflection-help" class="upload-note">Included in your text download. Saved in this browser tab until you start another interview.</p>
         </section>
         <details class="conversation-review">
           <summary>Review your conversation <span id="review-count"></span></summary>
@@ -62,6 +65,7 @@
         <p class="scorecard-disclaimer">Ratings use the interview answers. Areas without enough evidence are not assessed. AI-generated feedback can be imperfect.</p>
         <div class="scorecard-actions">
           <button class="secondary-button" id="save-scorecard">Save or print scorecard ↗</button>
+          <button class="secondary-button" id="copy-scorecard">Copy feedback</button>
           <button class="secondary-button" id="download-scorecard">Download feedback (.txt) ↓</button>
         </div>
         <p id="export-status" class="upload-note" role="status"></p>

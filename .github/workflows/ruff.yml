@@ -31,3 +31,6 @@ jobs:
 
     - name: Run ruff formatter
       run: uv run ruff format --check --diff .
+
+    - name: Run Python regression tests
+      run: uv run python -m pytest -q

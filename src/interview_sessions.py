@@ -31,7 +31,9 @@ def validate_access_code(provided_code: str | None) -> str:
     expected_code = os.getenv("INTERVIEW_ACCESS_CODE", "").strip()
     if not expected_code:
         raise RuntimeError("Interview demo access is not configured.")
-    if not provided_code or not secrets.compare_digest(provided_code, expected_code):
+    if not provided_code or not secrets.compare_digest(
+        provided_code.encode("utf-8"), expected_code.encode("utf-8")
+    ):
         raise AccessDeniedError("Enter a valid demo access code to continue.")
     return hashlib.sha256(expected_code.encode()).hexdigest()[:16]
 
@@ -81,9 +83,11 @@ def consume_interview_quota(code_fingerprint: str) -> None:
             "Interview usage limits are temporarily unavailable."
         ) from error
 
-    if result.get("error"):
+    if not isinstance(result, dict) or result.get("error"):
         raise RuntimeError("Interview usage limits are temporarily unavailable.")
     quota_result = result.get("result")
+    if type(quota_result) is not int:
+        raise RuntimeError("Interview usage limits returned an invalid response.")
     if quota_result == 1:
         raise AccessDeniedError(
             "Today's demo interview limit has been reached. Please try again tomorrow."
@@ -123,7 +127,10 @@ def parse_interview_inputs(content_type: str, body: bytes) -> tuple[str, str]:
         if field == "job_description":
             if job_description:
                 raise ValueError("Enter one job description.")
-            job_description = (part.get_content() or "").strip()
+            content = part.get_content()
+            if not isinstance(content, str):
+                raise ValueError("The job description must be plain text.")
+            job_description = content.strip()
         elif field == "resume_pdf":
             if resume_pdf is not None:
                 raise ValueError("Upload one resume PDF.")

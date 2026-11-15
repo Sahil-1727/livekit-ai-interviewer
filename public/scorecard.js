@@ -1,5 +1,38 @@
 const scorecardContent = document.querySelector(".scorecard-content");
-document.querySelector("#save-scorecard")?.addEventListener("click", () => window.print());
+document.querySelector("#save-scorecard")?.addEventListener("click", () => {
+  try { window.print(); } catch {
+    document.querySelector("#export-status").textContent = "Printing unavailable. Download or copy your feedback instead.";
+  }
+});
+
+function enablePracticeNotes() {
+  const input = document.querySelector("#practice-reflection");
+  const help = document.querySelector("#reflection-help");
+  try { input.value = sessionStorage.getItem("interviewPracticeNotes") || ""; } catch {
+    help.textContent = "Browser storage is unavailable. Download your feedback to keep these notes.";
+  }
+  input.addEventListener("input", () => {
+    try {
+      sessionStorage.setItem("interviewPracticeNotes", input.value.slice(0, 2000));
+      help.textContent = "Notes saved in this tab. Included in your text download.";
+    } catch {
+      help.textContent = "Could not save notes in this browser. Download your feedback before leaving.";
+    }
+  });
+}
+
+function enableScorecardCopy(card) {
+  document.querySelector("#copy-scorecard")?.addEventListener("click", async () => {
+    const status = document.querySelector("#export-status");
+    try {
+      const reflection = document.querySelector("#practice-reflection")?.value || "";
+      await navigator.clipboard.writeText(scorecardToText(card, reflection));
+      status.textContent = "Feedback copied, including your practice notes.";
+    } catch {
+      status.textContent = "Clipboard unavailable. Download your feedback instead.";
+    }
+  });
+}
 
 function scorecardToText(card, reflection = "") {
   const categories = {
@@ -169,6 +202,8 @@ try {
   } else {
     renderScorecard(scorecard);
     enableScorecardDownload(scorecard);
+    enableScorecardCopy(scorecard);
+    enablePracticeNotes();
   }
 } catch {
   showMissingScorecard();

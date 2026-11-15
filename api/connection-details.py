@@ -38,12 +38,16 @@ class handler(BaseHTTPRequestHandler):  # noqa: N801 - Vercel entrypoint name
             return
 
         try:
-            body = self.rfile.read(content_length)
-            job_description, resume = parse_interview_inputs(
-                self.headers.get("Content-Type", ""), body
-            )
             fingerprint = validate_access_code(
                 self.headers.get("X-Interview-Access-Code")
+            )
+            body = self.rfile.read(content_length)
+            if len(body) != content_length:
+                raise ValueError(
+                    "The upload was interrupted. Please upload your PDF again."
+                )
+            job_description, resume = parse_interview_inputs(
+                self.headers.get("Content-Type", ""), body
             )
             consume_interview_quota(fingerprint)
             connection = create_interview_connection(job_description, resume)

@@ -27,6 +27,19 @@ load_dotenv(BASE_DIR / ".env.local")
 
 
 class InterviewUIHandler(BaseHTTPRequestHandler):
+    def end_headers(self) -> None:
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("X-Frame-Options", "DENY")
+        self.send_header("Referrer-Policy", "same-origin")
+        self.send_header(
+            "Permissions-Policy", "camera=(), geolocation=(), microphone=(self)"
+        )
+        self.send_header(
+            "Content-Security-Policy",
+            "frame-ancestors 'none'; base-uri 'self'; object-src 'none'",
+        )
+        super().end_headers()
+
     def do_POST(self) -> None:
         if urlparse(self.path).path != "/api/connection-details":
             self.send_error(404)
@@ -54,12 +67,16 @@ class InterviewUIHandler(BaseHTTPRequestHandler):
             return
 
         try:
-            body = self.rfile.read(content_length)
-            job_description, resume = parse_interview_inputs(
-                self.headers.get("Content-Type", ""), body
-            )
             fingerprint = validate_access_code(
                 self.headers.get("X-Interview-Access-Code")
+            )
+            body = self.rfile.read(content_length)
+            if len(body) != content_length:
+                raise ValueError(
+                    "The upload was interrupted. Please upload your PDF again."
+                )
+            job_description, resume = parse_interview_inputs(
+                self.headers.get("Content-Type", ""), body
             )
             consume_interview_quota(fingerprint)
             connection = create_interview_connection(job_description, resume)
