@@ -899,3 +899,96 @@ body:not(.session-active) .controls { grid-template-columns: 1fr; }
   .scorecard-home, #save-scorecard, #save-scorecard + p, .footer { display: none; }
   .scorecard-overview, .scorecard-detail { break-inside: avoid; box-shadow: none; }
 }
+
+/* Adapt to available space, text zoom, touch input, and mobile browser chrome. */
+@media screen {
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scroll-padding-block: 24px; }
+  body, .shell { min-height: 100svh; }
+  .shell, .interview-page .shell {
+    padding-left: max(clamp(16px, 4vw, 64px), env(safe-area-inset-left));
+    padding-right: max(clamp(16px, 4vw, 64px), env(safe-area-inset-right));
+  }
+  .workspace > *, .scorecard-overview > *, .scorecard-details > *, .controls > * { min-width: 0; }
+  .intro-copy, .scorecard-intro, .scorecard-detail, .scorecard-evidence, .connection-error, #status-text { overflow-wrap: anywhere; }
+  .interview-page .intro h1 em { letter-spacing: -.02em; }
+  .status-row { height: auto; min-height: 48px; padding-block: 12px; }
+  .status-light, .status-time { flex-shrink: 0; }
+  #status-text { font-size: 13px; line-height: 1.5; }
+  .status-time { font-size: 12px; }
+  .secondary-button, .start-button, .interview-page .help-button {
+    min-height: 44px; height: auto; padding: 12px 16px;
+    line-height: 1.5; white-space: normal; text-align: center;
+  }
+  .secondary-button, .start-button, .help-button, summary, .text-button { touch-action: manipulation; }
+  .text-button, .draft-controls label, .request-access-link { min-height: 44px; display: inline-flex; align-items: center; }
+  .interview-page .upload-field input, .interview-page .jd-field textarea, .reflection-panel textarea { font-size: 16px; scroll-margin-block: 90px; }
+  .interview-page .upload-field input { min-height: 48px; }
+  .field-heading { flex-wrap: wrap; row-gap: 4px; }
+  .field-hint { white-space: normal; }
+  .transcript { height: clamp(120px, 22svh, 220px); font-size: 14px; overscroll-behavior-y: contain; }
+  #conversation-review-content { max-height: 50svh; overscroll-behavior-y: contain; }
+  .scorecard-content h1 { font-size: clamp(42px, 7vw, 76px); line-height: 1.05; }
+  .scorecard-ratings { grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); }
+  .scorecard-ratings dt, .scorecard-ratings dd { min-width: 0; overflow-wrap: anywhere; font-size: 14px; }
+  .scorecard-evidence { font-size: 13px; }
+  .scorecard-detail li, .scorecard-detail p { font-size: 14px; }
+  .scorecard-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+  .scorecard-actions .secondary-button { flex: 1 1 220px; margin: 0; }
+  .scorecard-home { max-width: 100%; }
+  .conversation-review summary { min-height: 44px; line-height: 1.6; }
+  .conversation-review summary span { float: none; margin-left: 10px; display: inline-block; }
+  .help-dialog { max-height: min(85dvh, 700px); overflow-y: auto; overscroll-behavior: contain; }
+  .toast { bottom: max(20px, env(safe-area-inset-bottom)); line-height: 1.5; overflow-wrap: anywhere; }
+  .footer { min-height: 64px; height: auto; gap: 16px; padding-block: 18px; padding-bottom: max(18px, env(safe-area-inset-bottom)); line-height: 1.6; }
+}
+
+@media screen and (max-width: 1050px) {
+  .interview-page .workspace { display: grid; grid-template-columns: minmax(0, 1fr); gap: 32px; padding-block: 32px; }
+  .interview-page .intro { padding: 0; }
+  .interview-page .intro h1 { font-size: clamp(40px, 6vw, 58px); }
+  .interview-page .intro-copy { max-width: 650px; }
+  .interview-page .practice-note { display: none; }
+  .interview-page .journey { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .interview-page .interview-card { width: 100%; }
+  .session-active .intro { display: none; }
+}
+
+@media screen and (max-width: 600px) {
+  .interview-page .topbar, .topbar { height: auto; min-height: 76px; gap: 12px; padding-block: 14px; }
+  .top-meta { display: none; }
+  .interview-page .brand { font-size: 22px; }
+  .interview-page .help-button { font-size: 12px; padding: 10px 12px; }
+  .interview-page .interview-card { padding: 20px 16px; border-radius: 12px; }
+  .interview-page .intro h1 { font-size: clamp(36px, 9vw, 52px); letter-spacing: -1px; }
+  .interview-page .upload-title { font-size: 30px; }
+  .intro-tag { font-size: 10px; letter-spacing: 1px; }
+  .session-facts { flex-wrap: wrap; gap: 16px 24px; }
+  .session-active .controls {
+    position: sticky; bottom: max(10px, env(safe-area-inset-bottom)); z-index: 2;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 8px; box-shadow: 0 4px 24px rgb(43 48 43 / 12%);
+  }
+  .session-active .visualizer { height: min(240px, 32svh); min-height: 150px; }
+  .session-active .controls { grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); gap: 8px; }
+  .session-active .controls button { padding: 12px 8px; font-size: 12px; }
+  .scorecard-content { padding-block: 32px; }
+  .scorecard-overview, .scorecard-details { grid-template-columns: minmax(0, 1fr); }
+  .overall-score { border-right: 0; border-bottom: 1px solid var(--line); }
+  .overall-score, .rating-panel, .scorecard-detail, .reflection-panel { padding: 20px 16px; }
+  .scorecard-ratings { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .scorecard-ratings dd { margin-bottom: 16px; }
+  .conversation-review { padding: 16px; }
+  .help-dialog { padding: 24px; }
+  .help-dialog h2 { font-size: 32px; }
+}
+
+@media screen and (max-height: 500px) and (orientation: landscape) {
+  .session-active .workspace { padding-block: 12px; }
+  .session-active .visualizer { height: 120px; min-height: 120px; }
+  .help-dialog { max-height: 90dvh; }
+}
+
+@media (forced-colors: active) {
+  .start-button, .secondary-button, .help-button { border: 1px solid ButtonText; }
+  :focus-visible { outline-color: Highlight; }
+}
